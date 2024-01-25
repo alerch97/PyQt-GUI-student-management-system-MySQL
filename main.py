@@ -1,3 +1,4 @@
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QLabel, QWidget, QGridLayout, \
     QLineEdit, QPushButton, QMainWindow, QTableWidget, QTableWidgetItem, QDialog, \
     QVBoxLayout, QComboBox
@@ -22,10 +23,10 @@ class MainWindow(QMainWindow):
         file_menu_item.addAction(add_student_action)
 
         # Submenu: Search
-        search_student = QAction("Search", self)
+        search_action = QAction("Search", self)
         # specify method without calling it (so without parenthesis () )
-        search_student.triggered.connect(self.search)
-        edit_menu_item.addAction(search_student)
+        search_action.triggered.connect(self.search)
+        edit_menu_item.addAction(search_action)
 
         # Submenu: About
         about_action = QAction("About", self)
@@ -112,9 +113,9 @@ class SearchDialog(QDialog):
         layout = QVBoxLayout()
 
         # Add name widget
-        self.name = QLineEdit()
-        self.name.setPlaceholderText("Name")
-        layout.addWidget(self.name)
+        self.student_name = QLineEdit()
+        self.student_name.setPlaceholderText("Name")
+        layout.addWidget(self.student_name)
 
         # Add a search button
         button = QPushButton("Search")
@@ -124,7 +125,17 @@ class SearchDialog(QDialog):
         self.setLayout(layout)
 
     def search(self):
-        pass
+        name = self.student_name.text()
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        result = cursor.execute("SELECT * FROM students WHERE name = ? ", (name, ))
+        rows = list(result)
+        items = management_system.table.findItems(name, Qt.MatchFlag.MatchFixedString)
+        for item in items:
+            management_system.table.item(item.row(), 1).setSelected(True)
+
+        cursor.close()
+        connection.close()
 
 
 app = QApplication(sys.argv)
